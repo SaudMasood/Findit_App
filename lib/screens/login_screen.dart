@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/app_provider.dart';
+import 'home_screen.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -25,38 +26,56 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
+    // Validate email and password fields
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
+    // Get AppProvider
     final appProvider = context.read<AppProvider>();
 
-    await appProvider.login(
+    // Login using Firebase Authentication
+    final bool success = await appProvider.login(
       email: _emailController.text.trim(),
       password: _passwordController.text.trim(),
     );
 
+    // Check if screen still exists after async operation
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Login successful'),
-      ),
-    );
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Login successful'),
+          backgroundColor: Colors.green,
+        ),
+      );
 
-    // Later:
-    // Navigator.pushReplacement(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (_) => const HomeScreen(),
-    //   ),
-    // );
+      // Navigate to HomeScreen and remove LoginScreen from stack
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const HomeScreen(),
+        ),
+        (route) => false,
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            appProvider.errorMessage ?? 'Login failed',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
@@ -65,11 +84,13 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           child: Form(
             key: _formKey,
+
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 50),
 
+                // App Logo
                 Center(
                   child: Container(
                     width: 85,
@@ -88,6 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 25),
 
+                // Title
                 const Center(
                   child: Text(
                     'Welcome Back!',
@@ -100,6 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 8),
 
+                // Subtitle
                 const Center(
                   child: Text(
                     'Login to continue finding and helping others',
@@ -113,6 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 40),
 
+                // Email Label
                 const Text(
                   'Email',
                   style: TextStyle(
@@ -123,12 +147,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 8),
 
+                // Email Field
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     hintText: 'Enter your email',
-                    prefixIcon: const Icon(Icons.email_outlined),
+                    prefixIcon: const Icon(
+                      Icons.email_outlined,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -138,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       return 'Please enter your email';
                     }
 
-                    if (!value.contains('@')) {
+                    if (!value.contains('@') || !value.contains('.')) {
                       return 'Please enter a valid email';
                     }
 
@@ -148,6 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 20),
 
+                // Password Label
                 const Text(
                   'Password',
                   style: TextStyle(
@@ -158,6 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 8),
 
+                // Password Field
                 Consumer<AppProvider>(
                   builder: (context, provider, child) {
                     return TextFormField(
@@ -165,7 +194,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       obscureText: !provider.isPasswordVisible,
                       decoration: InputDecoration(
                         hintText: 'Enter your password',
-                        prefixIcon: const Icon(Icons.lock_outline),
+                        prefixIcon: const Icon(
+                          Icons.lock_outline,
+                        ),
                         suffixIcon: IconButton(
                           onPressed: provider.togglePasswordVisibility,
                           icon: Icon(
@@ -195,15 +226,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 30),
 
+                // Login Button
                 SizedBox(
                   width: double.infinity,
                   height: 55,
                   child: Consumer<AppProvider>(
                     builder: (context, provider, child) {
                       return ElevatedButton(
-                        onPressed: provider.isLoading
-                            ? null
-                            : _handleLogin,
+                        onPressed:
+                            provider.isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF6C4EFF),
                           foregroundColor: Colors.white,
@@ -234,6 +265,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 25),
 
+                // Signup Navigation
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -245,7 +277,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const SignupScreen(),
+                            builder: (context) =>
+                                const SignupScreen(),
                           ),
                         );
                       },

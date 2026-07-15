@@ -30,28 +30,42 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> _handleSignup() async {
+    // First validate all form fields
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
+    // Get AppProvider without listening for UI changes
     final appProvider = context.read<AppProvider>();
 
-    await appProvider.signup(
+    // Call Firebase signup through AppProvider
+    final bool success = await appProvider.signup(
       name: _nameController.text.trim(),
       email: _emailController.text.trim(),
       password: _passwordController.text.trim(),
     );
 
+    // Check if screen is still mounted after async operation
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Account created successfully'),
-      ),
-    );
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account created successfully'),
+        ),
+      );
 
-    // Go back to login screen
-    Navigator.pop(context);
+      // Return to Login Screen
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            appProvider.errorMessage ?? 'Signup failed',
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -79,13 +93,10 @@ class _SignupScreenState extends State<SignupScreen> {
             horizontal: 24,
             vertical: 10,
           ),
-
           child: Form(
             key: _formKey,
-
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-
               children: [
                 const Center(
                   child: Text(
@@ -112,7 +123,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
                 const SizedBox(height: 35),
 
-                // Name
+                // Full Name
                 const Text(
                   'Full Name',
                   style: TextStyle(
@@ -133,7 +144,6 @@ class _SignupScreenState extends State<SignupScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter your name';
@@ -170,7 +180,6 @@ class _SignupScreenState extends State<SignupScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter your email';
@@ -202,11 +211,9 @@ class _SignupScreenState extends State<SignupScreen> {
                     return TextFormField(
                       controller: _passwordController,
                       obscureText: !provider.isPasswordVisible,
-
                       decoration: InputDecoration(
                         hintText: 'Enter your password',
                         prefixIcon: const Icon(Icons.lock_outline),
-
                         suffixIcon: IconButton(
                           onPressed: provider.togglePasswordVisibility,
                           icon: Icon(
@@ -215,12 +222,10 @@ class _SignupScreenState extends State<SignupScreen> {
                                 : Icons.visibility_off,
                           ),
                         ),
-
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your password';
@@ -254,11 +259,9 @@ class _SignupScreenState extends State<SignupScreen> {
                     return TextFormField(
                       controller: _confirmPasswordController,
                       obscureText: !provider.isConfirmPasswordVisible,
-
                       decoration: InputDecoration(
                         hintText: 'Confirm your password',
                         prefixIcon: const Icon(Icons.lock_outline),
-
                         suffixIcon: IconButton(
                           onPressed:
                               provider.toggleConfirmPasswordVisibility,
@@ -268,12 +271,10 @@ class _SignupScreenState extends State<SignupScreen> {
                                 : Icons.visibility_off,
                           ),
                         ),
-
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please confirm your password';
@@ -291,27 +292,22 @@ class _SignupScreenState extends State<SignupScreen> {
 
                 const SizedBox(height: 30),
 
-                // Signup Button
+                // Create Account Button
                 SizedBox(
                   width: double.infinity,
                   height: 55,
-
                   child: Consumer<AppProvider>(
                     builder: (context, provider, child) {
                       return ElevatedButton(
-                        onPressed: provider.isLoading
-                            ? null
-                            : _handleSignup,
-
+                        onPressed:
+                            provider.isLoading ? null : _handleSignup,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF6C4EFF),
                           foregroundColor: Colors.white,
-
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-
                         child: provider.isLoading
                             ? const SizedBox(
                                 width: 24,
@@ -337,15 +333,12 @@ class _SignupScreenState extends State<SignupScreen> {
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-
                   children: [
                     const Text('Already have an account?'),
-
                     TextButton(
                       onPressed: () {
                         Navigator.pop(context);
                       },
-
                       child: const Text(
                         'Login',
                         style: TextStyle(
